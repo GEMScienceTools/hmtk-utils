@@ -112,8 +112,11 @@ def _get_area_tgrmfd_attr(max_np, max_hd):
         att.append({'name': lab, 'type': 'Real'})
     att.append({'name': 'dip_1', 'type': 'Real'})
     att.append({'name': 'num_hdd', 'type': 'Integer'})
-    att.append({'name': 'hdd_d1', 'type': 'Real'})
-    att.append({'name': 'hdd_w1', 'type': 'Real'})
+    for i in range(1, max_np+1):
+        lab = 'hdd_d_%d' % (i)
+        att.append({'name': lab, 'type': 'Real'})
+        lab = 'hdd_w_%d' % (i)
+        att.append({'name': lab, 'type': 'Real'})
     return att
 
 
@@ -172,7 +175,7 @@ def _write_area_source_tgrmfd(src, lyr, max_np, max_hd):
     feat.SetField('num_hdd', int(max_hd))
     for hdd in src.hypo_depth_dist:
         for key in MAPPING_HDD:
-            tmp_str = '%s%d' % (key, cnt)
+            tmp_str = '%s_%d' % (key, cnt)
             print tmp_str
             if key == 'hdd_w':
                 value = float(getattr(hdd, MAPPING_HDD[key]))
@@ -253,7 +256,7 @@ def write_shps(nrml_data, out_directory):
     else:
         pass
 
-    # Find the maximum number of nodal planes and the maximum number of 
+    # Find the maximum number of nodal planes and the maximum number of
     # hypocentral depths used for a source
     parser = SourceModelParser(nrml_data)
     source_model = parser.parse()

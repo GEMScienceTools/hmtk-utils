@@ -1,4 +1,5 @@
-hmtk_utils
+hmtk-utils: the Hazard Modeller's Toolkit utilities
 ==========
 
-Hazard Modeller's Toolkit Utilities
+The Hazard Modeller's Toolkit utilities contains tools for:
+- the conversion of standardized shapefiles into nrml files that can used as an input to the OQ-engine

@@ -112,11 +112,12 @@ def _get_area_tgrmfd_attr(max_np, max_hd):
         att.append({'name': lab, 'type': 'Real'})
     att.append({'name': 'dip_1', 'type': 'Real'})
     att.append({'name': 'num_hdd', 'type': 'Integer'})
-    for i in range(1, max_np+1):
+    for i in range(1, max_hd+1):
         lab = 'hdd_d_%d' % (i)
         att.append({'name': lab, 'type': 'Real'})
         lab = 'hdd_w_%d' % (i)
         att.append({'name': lab, 'type': 'Real'})
+        print 'adding:',lab
     return att
 
 
@@ -176,7 +177,6 @@ def _write_area_source_tgrmfd(src, lyr, max_np, max_hd):
     for hdd in src.hypo_depth_dist:
         for key in MAPPING_HDD:
             tmp_str = '%s_%d' % (key, cnt)
-            print tmp_str
             if key == 'hdd_w':
                 value = float(getattr(hdd, MAPPING_HDD[key]))
             else:
@@ -275,7 +275,6 @@ def write_shps(nrml_data, out_directory):
         # Add area sources
         if isinstance(source, AreaSource):
             if isinstance(source.mfd, TGRMFD):
-                print 'adding source ', source.name
                 lyr = data_set.GetLayer()
                 _write_area_source_tgrmfd(source, lyr, max_np, max_hd)
 

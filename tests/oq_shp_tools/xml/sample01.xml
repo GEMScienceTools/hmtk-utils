@@ -20,7 +20,8 @@
         <nodalPlane dip="90.0" probability="1.0" rake="0.0" strike="0.0"/>
       </nodalPlaneDist>
       <hypoDepthDist>
-        <hypoDepth depth=" 10." probability="1.0"/>
+        <hypoDepth depth=" 10." probability="0.2"/>
+        <hypoDepth depth=" 10." probability="0.8"/>
       </hypoDepthDist>
     </areaSource>
     <areaSource id="2" name="ZB03" tectonicRegion="Active Shallow Crust">

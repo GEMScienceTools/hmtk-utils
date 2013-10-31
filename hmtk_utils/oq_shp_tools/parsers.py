@@ -49,13 +49,17 @@ def _get_hypo_depth_distr(feature):
     """
 
     nodal_plane_list = []
-    num_npd = feature.GetField('num_npd')
-    for i in range(0, num_npd):
+    num_hdd = feature.GetField('num_hdd')
+    for i in range(0, num_hdd):
         idx = i + 1
         depth = feature.GetField('hdd_d_%d' % (idx))
         prob = feature.GetField('hdd_w_%d' % (idx))
-        nodal_plane_list.append(HypocentralDepth(probability=prob,
-                                                 depth=depth))
+        if depth is not None:
+            nodal_plane_list.append(HypocentralDepth(probability=prob,
+                                                     depth=depth))
+        else:
+            print depth
+
     return nodal_plane_list
 
 

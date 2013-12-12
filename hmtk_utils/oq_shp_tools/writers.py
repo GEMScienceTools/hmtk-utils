@@ -1,3 +1,4 @@
+# coding=utf-8
 #
 # LICENSE
 #
@@ -397,7 +398,7 @@ def _write_area_source_tgrmfd(src, lyr, max_np, max_hd):
 
 
 def _create_area_source_incmfd_shapefile(shapefile_path, max_np, max_hd,
-                                         max_bins):
+                                         max_bins, rootname):
     """
     Create a shapefile which contains area sources with a truncated GR mfd
 
@@ -420,7 +421,7 @@ def _create_area_source_incmfd_shapefile(shapefile_path, max_np, max_hd,
         print "%s driver not available.\n" % driverName
         sys.exit(1)
 
-    layer_name = "as_incr"
+    layer_name = rootname+"_incr"
     ds = drv.CreateDataSource(shapefile_path+layer_name+".shp")
     if ds is None:
         print "Creation of output file failed.\n"
@@ -442,7 +443,8 @@ def _create_area_source_incmfd_shapefile(shapefile_path, max_np, max_hd,
     return ds
 
 
-def _create_area_source_tgrmfd_shapefile(shapefile_path, max_np, max_hd):
+def _create_area_source_tgrmfd_shapefile(shapefile_path, max_np, max_hd,
+                                         rootname):
     """
     Create a shapefile which contains area sources with a truncated GR mfd
 
@@ -465,7 +467,7 @@ def _create_area_source_tgrmfd_shapefile(shapefile_path, max_np, max_hd):
         print "%s driver not available.\n" % driverName
         sys.exit(1)
 
-    layer_name = "as_trgr"
+    layer_name = rootname+"_trgr"
     ds = drv.CreateDataSource(shapefile_path+layer_name+".shp")
     if ds is None:
         print "Creation of output file failed.\n"
@@ -487,7 +489,7 @@ def _create_area_source_tgrmfd_shapefile(shapefile_path, max_np, max_hd):
     return ds
 
 
-def write_shps(nrml_data, out_directory):
+def write_shps(nrml_data, out_directory, rootname='as'):
     """
     This creates a set of shapefiles each one containing a set of sources
     with uniform characteristics.
@@ -497,6 +499,8 @@ def write_shps(nrml_data, out_directory):
         shapefile or an instance of :class:`SourceModel`
     :parameter out_directory:
         The directory where all the shapefiles will be created
+    :parameter str rootname:
+        The name used to create the different shaefiles (one for each mfd)
     """
 
     if isinstance(nrml_data, SourceModel):
@@ -513,7 +517,8 @@ def write_shps(nrml_data, out_directory):
     # ---- Create shapefile: Area sources with incremental mfd
     data_set_as_incr = _create_area_source_incmfd_shapefile(out_directory,
                                                             max_np, max_hd,
-                                                            max_bins)
+                                                            max_bins,
+                                                            rootname)
     parser = SourceModelParser(nrml_data)
     source_model1 = parser.parse()
 
@@ -530,7 +535,8 @@ def write_shps(nrml_data, out_directory):
 
     # ---- Create the shapefile: area sources with truncated GR
     data_set_as_trgr = _create_area_source_tgrmfd_shapefile(out_directory,
-                                                            max_np, max_hd)
+                                                            max_np, max_hd,
+                                                            rootname)
     parser = SourceModelParser(nrml_data)
     source_model1 = parser.parse()
 
@@ -542,4 +548,5 @@ def write_shps(nrml_data, out_directory):
         if isinstance(source, AreaSource):
             if isinstance(source.mfd, TGRMFD):
                 _write_area_source_tgrmfd(source, lyr, max_np, max_hd)
+
     del data_set_as_trgr

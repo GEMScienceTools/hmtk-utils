@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # LICENSE
 #
@@ -46,19 +47,24 @@
 
 """
 Module for parsing preformatted shapefiles containing information about
-OQ-engine source typologies
+OQ-engine source typologies.
 """
 
 import ogr
 import os
 
+from decimal import Decimal
+
 from openquake.nrmllib.models import AreaSource, TGRMFD, NodalPlane, \
     HypocentralDepth, AreaGeometry
 
 
-def _get_area_geometry(feature):
+def _get_area_geometry(feature, only_geom=False):
     """
     This function gets the geometry of a polygon feature
+
+    :parameter feature:
+    :parameter only_geom:
 
     :returns:
         An instance of the :class:`AreaGeometry` defined in the oq-nrmllib
@@ -73,8 +79,12 @@ def _get_area_geometry(feature):
         wkt_str += '%.5f %.5f,' % (pts.GetX(point), pts.GetY(point))
     wkt_str += '))'
 
-    upp_seismo = feature.GetField('upp_seismo')
-    low_seismo = feature.GetField('low_seismo')
+    if not only_geom:
+        upp_seismo = feature.GetField('upp_seismo')
+        low_seismo = feature.GetField('low_seismo')
+    else:
+        upp_seismo = 0.0
+        low_seismo = 1.0
 
     # Create the area geometry object
     area_geom = AreaGeometry(wkt=wkt_str, upper_seismo_depth=upp_seismo,
@@ -150,10 +160,19 @@ def _get_truncGR_from_feature(feature):
     return TGRMFD(a_val=a_val, b_val=b_val, min_mag=min_mag, max_mag=max_mag)
 
 
-def parse_area_source_shp(filename):
+def parse_area_source_shp(filename, only_geom=False, config={}):
     """
     Parse an preformatted shapefile containing information about area
     sources
+
+    :parameter str filename:
+        Name of the shapefile to be parsed
+    :parameter dict config:
+        A dictionary whose keys corresponds to the attributes of a
+        :class:`AreaSource` instance. These attributes are assigned
+        to each parsed area source.
+    :parameter bool only_geometry:
+        When True only geometry of sources is taken from the shapefile
 
     :returns:
         A list of :class:`AreaSource` istances
@@ -176,43 +195,76 @@ def parse_area_source_shp(filename):
 
     sourcelist = []
     feature = layer.GetNextFeature()
+    cnt = 0
     while feature:
-
-        # General parameters
-        src_id = feature.GetField('src_id')
-        name = feature.GetField('src_name')
-        tect_reg = feature.GetField('tect_reg')
-
-        # Geometry parameters
-        mag_scal = feature.GetField('mag_scal_r')
-        rup_asp_ratio = feature.GetField('rup_asp_ra')
-
-        # Computing the MFD distribution
-        mfd_type = feature.GetField('mfd_type')
-        if mfd_type == 'truncGutenbergRichterMFD':
-            mfd = _get_truncGR_from_feature(feature)
-
-        # Create the nodal plane distribution
-        nodal_planes_list = _get_nodal_plane_distr(feature)
-
-        # Create the hypocentral depth distribution
-        hypo_depth_list = _get_hypo_depth_distr(feature)
+        print cnt
 
         # Create the area source geometry
-        geometry = _get_area_geometry(feature)
+        geometry = _get_area_geometry(feature, only_geom)
 
-        # Append the AreaSource to the list of sources
-        sourcelist.append(AreaSource(id=src_id,
-                          name=name,
-                          geometry=geometry,
-                          trt=tect_reg,
-                          mag_scale_rel=mag_scal,
-                          rupt_aspect_ratio=rup_asp_ratio,
-                          mfd=mfd,
-                          nodal_plane_dist=nodal_planes_list,
-                          hypo_depth_dist=hypo_depth_list))
+        if not only_geom:
+
+            # General parameters
+            src_id = feature.GetField('src_id')
+            name = feature.GetField('src_name')
+            tect_reg = feature.GetField('tect_reg')
+
+            # Geometry parameters
+            mag_scal = feature.GetField('mag_scal_r')
+            rup_asp_ratio = feature.GetField('rup_asp_ra')
+
+            # Computing the MFD distribution
+            mfd_type = feature.GetField('mfd_type')
+            if mfd_type == 'truncGutenbergRichterMFD':
+                mfd = _get_truncGR_from_feature(feature)
+
+            # Create the nodal plane distribution
+            nodal_planes_list = _get_nodal_plane_distr(feature)
+
+            # Create the hypocentral depth distribution
+            hypo_depth_list = _get_hypo_depth_distr(feature)
+
+            # Append the AreaSource to the list of sources
+            areasource = AreaSource(id=src_id,
+                                    name=name,
+                                    geometry=geometry,
+                                    trt=tect_reg,
+                                    mag_scale_rel=mag_scal,
+                                    rupt_aspect_ratio=rup_asp_ratio,
+                                    mfd=mfd,
+                                    nodal_plane_dist=nodal_planes_list,
+                                    hypo_depth_dist=hypo_depth_list)
+
+        else:
+
+            src_id = 'Null'
+            name = 'Null'
+            tect_reg = 'Null'
+            mag_scal = 'Null'
+            rup_asp_ratio = 0.1
+            mfd = TGRMFD(a_val=1.0, b_val=1.0, min_mag=4.0, max_mag=4.1)
+            nodal_planes_list = [NodalPlane(probability=Decimal(1.0),
+                                            strike=0.0,
+                                            dip=0.0,
+                                            rake=0.0)]
+            hypo_depth_list = [HypocentralDepth(probability=1.0, depth=1.0)]
+
+            # Append the AreaSource to the list of sources
+            areasource = AreaSource(id=src_id,
+                                    name=name,
+                                    geometry=geometry,
+                                    trt=tect_reg,
+                                    mag_scale_rel=mag_scal,
+                                    rupt_aspect_ratio=rup_asp_ratio,
+                                    mfd=mfd,
+                                    nodal_plane_dist=nodal_planes_list,
+                                    hypo_depth_dist=hypo_depth_list)
+
+        sourcelist.append(areasource)
 
         # Get the next feature
         feature = layer.GetNextFeature()
+
+        cnt += 1
 
     return sourcelist

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # LICENSE
 #
@@ -76,14 +77,15 @@ class ParsersTestCase(unittest.TestCase):
         filename = os.path.join(self.BASE_DATA_PATH, 'pippo.shp')
         self.assertRaises(IOError, parse_area_source_shp, filename)
 
-    def test_parse_area_source_shp(self):
+    def test_write_shapefile(self):
         """
-        This tests that the parameters in the shapefile attribute table are
+        This tests the creation of the shapefile from a nrml file
         correct.
         """
 
         # Get the list of area sources included in the shapefile
         source_list = parse_area_source_shp(self.filename)
+
 
         # Check the parameters of the first source
         src = source_list[0]
